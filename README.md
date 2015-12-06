@@ -4,12 +4,12 @@
 
  additional perl modules:
  ------------------------
- sudo cpan NET::IRC
- sudo cpan Unix::Time
- sudo cpan Time:HiRes
- sudo cpan DBD::SQLite
- sudo cpan IO::Socket::SSL
- sudo cpan Net::FTP
+	sudo cpan NET::IRC
+	sudo cpan Unix::Time
+	sudo cpan Time:HiRes
+	sudo cpan DBD::SQLite
+	sudo cpan IO::Socket::SSL
+	sudo cpan Net::FTP
 
  additional ssl wrapper to be able to connect to ssl ircd - as perl irc module cannot handle ssl itself properly
  ------------------------
@@ -39,6 +39,7 @@
  all commands:
  ------------------------
 !sites help:
+
 	!sites status: shows up/down-status of all sites
 	!sites show SITE: shows added details for SITE
 	!sites add SITE: adds new (empty) record for a new site - fill data with !sites set SITE parameter values
@@ -62,6 +63,7 @@
 	 - speed_index INT: 1-255, the higher the more important for the global spread or gimme process
 
 !pre help:
+
 	!pre test SITE: tests login and predir, tries all bnc's, if no sitename is given, it checks all sites
 		- if site is a presite then it checks the predir, if site is a dumpsite then it checks dump-path, if site is external source then only login-test is made
 
