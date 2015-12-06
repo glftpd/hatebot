@@ -4,8 +4,8 @@
 
  additional perl modules:
  ------------------------
-	sudo cpan NET::IRC
-	sudo cpan Unix::Time
+	sudo cpan Net::IRC
+	sudo cpan Time::Unix
 	sudo cpan Time:HiRes
 	sudo cpan DBD::SQLite
 	sudo cpan IO::Socket::SSL
