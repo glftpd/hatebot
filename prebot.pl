@@ -13,7 +13,7 @@ use warnings;
 use prebot_config qw($debug $ftp_timeout $ftp_timeout_high $ftp_debug $ftp_use_statlist @complet_tags $enable_trading 
 	@trading_rules $nfo_date_line $nfo_name @allowed_commands $irc_debug $irc_Nick $irc_Server 
 	$irc_Ircname $irc_Port $irc_Username $irc_Password $irc_SSL $irc_channel $irc_passwd @hidden_files 
-	@dupecheck_rels @dupecheck_tracks @dupecheck_tracksearch $ftp_use_progress $ssl_bnc_ip $ssl_bnc_port 
+	@dupecheck_rels @dupecheck_tracks @dupecheck_tracksearch $ftp_use_progress
 	$help_per_msg $use_blow $blowkey $max_sim_commands $irc_msg_delay $use_register_line $register_line $first_run
 	$max_spreading_threads $local_address);
 
@@ -27,9 +27,8 @@ my $sql_debug = 0;
 use threads ();
 use threads::shared qw(cond_signal cond_wait cond_broadcast);
 use Thread::Queue ();
-use Net::FTPpatched ();
+use Net::FTP ();
 use Net::IRC ();
-#use IRC ();
 use IO::Socket ();
 use Time::Unix ();
 use Time::HiRes qw(gettimeofday);
@@ -1275,25 +1274,6 @@ sub test_config {
 		}
 	}
 
-	# ssl-wrapper for ftp
-	debug_msg('testing tlswrap:');
-	if(1) { # local scope
-		if($ssl_bnc_ip eq '' || !$ssl_bnc_port) {
-			debug_msg('... tlswrap disabled in config-file');
-		}
-		else {
-			my $sd = IO::Socket::INET->new(PeerAddr => $ssl_bnc_ip, PeerPort => $ssl_bnc_port, Proto => 'tcp');
-			if(!$sd || !defined($sd)) {
-				debug_msg('... cannot connect to tlswrap on ip:port '.$ssl_bnc_ip.':'.$ssl_bnc_port);
-				exit();
-			}
-			else {
-				debug_msg('... tlswrap running: ok');
-				undef($sd);
-			}
-		}
-	}
-
 	# cleaning fxp_speeds_from/to table
 	debug_msg('cleaning tmp-table (fxp_speeds_from/to)');
 	if(1) { # local scope
@@ -1464,7 +1444,7 @@ sub show_sysinfo {
 	my $arch_sites_string = join(', ', @tmp);
 
 	irc_msg($irc_msgs, sprintf('[SYSINFO] %s - last started: %s', $bot_version, $uptime));
-	irc_msg($irc_msgs, sprintf('[SYSINFO] tlswrap: %s - auto-trading: %s', ($ssl_bnc_ip ne '' && $ssl_bnc_port ne 0)?'enabled':'disabled', $enable_trading eq 1 ? 'enabled':'disabled'));
+	irc_msg($irc_msgs, sprintf('[SYSINFO] auto-trading: %s', $enable_trading eq 1 ? 'enabled':'disabled'));
 	irc_msg($irc_msgs, sprintf('[SYSINFO] Sites: %s presites, %s dumpsites, %s source-sites, %s archives - %s total (ignoring up/down-state)', $presites, $dumpsites, $sourcesites, $archivesites, $totalsites));
 	irc_msg($irc_msgs, sprintf('[SYSINFO] Archives (index-files): %s', $arch_sites_string));
 	irc_msg($irc_msgs, sprintf('[SYSINFO] Total fxp traffic: %s %s',$size,$bytes));
@@ -4500,24 +4480,32 @@ sub check_site_bnc {
 	# short mode for glftpd
 	my $passwd=sprintf('-%s',$real_passwd);
 
-	if($ssl eq 'ssl') {
-		$login="$login\@$ip:$port";
-		$port=$ssl_bnc_port;
-		$ip=$ssl_bnc_ip;
-	}
-
 	my $status=-1;
 	my $result='';
 	my $timer_key = start_timer();
-	if(my $ftp = Net::FTPpatched->new($ip,Timeout => $ftp_timeout, Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address))
+	if(my $ftp = Net::FTP->new($ip,Timeout => $ftp_timeout, Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address, SSL_verify_mode => 0))
 	{
-		my $ok = 0;
-		if(!$ftp->login($login,$passwd)) {
-
+		my $ok = 1;
+		if($ssl eq 'ssl') {
+			if (!$ftp->starttls()) {
+				$ok = 0;
+				$result = sprintf('error switching to SSL (%s)',get_message($ftp));
+			}
+		}
+		
+		if(($ok eq 1) and (!$ftp->login($login,$passwd))) {
 			# seems the site doesnt support short-login mode ... use default mode
-			if($ftp = Net::FTPpatched->new($ip,Timeout => $ftp_timeout, Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address)) {
+			if($ftp = Net::FTP->new($ip,Timeout => $ftp_timeout, Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address, SSL_verify_mode => 0)) {
+				if($ssl eq 'ssl') {
+					if (!$ftp->starttls()) {
+						$ok = 0;
+						$result = sprintf('error switching to SSL (%s)',get_message($ftp));
+					}
+				}
+				                                         
 				if(!$ftp->login($login,$real_passwd)) {
 					$result=sprintf('error login in (%s)',get_message($ftp));
+					$ok = 0;
 				}
 				else {
 					$ok = 1;
@@ -4525,10 +4513,8 @@ sub check_site_bnc {
 			}
 			else {
 				$result='error connecting (timeout, unreachable)';
+				$ok = 0;
 			}
-		}
-		else {
-			$ok = 1;
 		}
 
 		if($ok eq 1) {
@@ -4737,13 +4723,16 @@ sub connect_to_site {
 		if ($encrypt eq 1) {
 			$login='#'.$login;
 		}
-		$login="$login\@$ip:$port";
-		$port=$ssl_bnc_port;
-		$ip=$ssl_bnc_ip;
 	}
 
-	if(my $ftp = Net::FTPpatched->new($ip,Timeout => ($use_high_timeout eq 0 ? $ftp_timeout: $ftp_timeout_high), Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address))
+	if(my $ftp = Net::FTP->new($ip,Timeout => ($use_high_timeout eq 0 ? $ftp_timeout: $ftp_timeout_high), Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address, SSL_verify_mode => 0))
 	{
+		if($ssl eq 'ssl') {
+			if(!$ftp->starttls()) {
+				return (0,sprintf('error switching to SSL (%s)',get_message($ftp)));
+			}
+		}
+		
 		if(!$ftp->login($login,$passwd)) {
 			return (0,sprintf('error login in (%s)',get_message($ftp)));
 		}

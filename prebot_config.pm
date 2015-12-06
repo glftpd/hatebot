@@ -5,7 +5,7 @@ require Exporter;
 @EXPORT = qw($debug $ftp_timeout $ftp_timeout_high $ftp_debug $ftp_use_statlist @complet_tags $enable_trading 
 	@trading_rules $nfo_date_line $nfo_name @allowed_commands $irc_debug $irc_Nick $irc_Server $irc_Ircname 
 	$irc_Port $irc_Username $irc_Password $irc_SSL $irc_channel $irc_passwd $help_per_msg @hidden_files 
-	@dupecheck_rels @dupecheck_tracks @dupecheck_tracksearch $ftp_use_progress $ssl_bnc_ip $ssl_bnc_port 
+	@dupecheck_rels @dupecheck_tracks @dupecheck_tracksearch $ftp_use_progress
 	$use_blow $blowkey $max_sim_commands $irc_msg_delay $use_register_line $register_line $first_run $max_spreading_threads 
 	$yapb_active $yapb_command $yapb_source $yapb_target $yapb_target2 $local_address);
 
@@ -39,11 +39,6 @@ $ftp_debug = 0;
 $ftp_use_progress = 1;
 # use 'stat -la' or regular dirlist
 $ftp_use_statlist = 1;
-
-# ip of the tlswrap ssl bnc
-$ssl_bnc_ip = '127.0.0.1';
-# port of the tlswrap ssl bnc
-$ssl_bnc_port = 7000;
 
 # ------------------------------------------------------------------
 # site-complete-tags

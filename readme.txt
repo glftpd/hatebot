@@ -4,15 +4,12 @@
 
  additional perl modules:
  ------------------------
- NET::IRC -> http://search.cpan.org/CPAN/authors/id/J/JM/JMUHLICH/Net-IRC-0.75.tar.gz
- Unix::Time -> http://search.cpan.org/CPAN/authors/id/N/NW/NWIGER/Time-Unix-1.03.tar.gz
- Time:HiRes -> http://search.cpan.org/CPAN/authors/id/J/JH/JHI/Time-HiRes-1.65.tar.gz
- DBD::SQLite -> http://search.cpan.org/~msergeant/DBD-SQLite-1.09/lib/DBD/SQLite.pm
-
- additional tls wrapper to be able to connect to tls/ssl sites, be sure to start with parameter -c 20 (or a higher value)
- - recommented to use tlswrap > 1.0, it supports strict ssl
- ------------------------
- tlswrap -> http://tlswrap.sunsite.dk/
+ sudo cpan NET::IRC
+ sudo cpan Unix::Time
+ sudo cpan Time:HiRes
+ sudo cpan DBD::SQLite
+ sudo cpan IO::Socket::SSL
+ sudo cpan Net::FTP
 
  additional ssl wrapper to be able to connect to ssl ircd - as perl irc module cannot handle ssl itself properly
  ------------------------
@@ -34,8 +31,8 @@
 
  install
  ------------------------
- - install all needed perl-modules - check if sqlite+tlswrap is installed and running
- - edit the config-file, setup all ip's / ports for ircd / tlswrap
+ - install all needed perl-modules - check if sqlite is installed and running
+ - edit the config-file, setup all ip's / ports for ircd
  - start the bot - setup ur sites .. 
  
 
