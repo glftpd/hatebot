@@ -1,5 +1,7 @@
 # HateBot v0.98-24 SQLite - 28.Oct.2005
 # (c) Jonas 2003+2004+2005 .)
+# modifed by Hujer to remove tlswrap (2015)
+
 # multithreaded 100% perl prebot with fxp/pre/dupe/search features ...
 
  additional perl modules:
