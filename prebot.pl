@@ -1217,10 +1217,6 @@ sub test_config {
 				debug_msg('blowfish enabled but no key set, check configuration');
 				exit();
 			}
-			if(length($blowkey)<56) {
-				debug_msg('blowfish enabled but key-length has to be exactly 56 characters, check configuration');
-				exit();
-			}
 			debug_msg('... ok');
 		}
 		else {
@@ -4719,12 +4715,6 @@ sub connect_to_site {
 
 	my ($ip, $port) = get_site_bnc($bnc_list, 0);
 
-	if($ssl eq 'ssl') {
-		if ($encrypt eq 1) {
-			$login='#'.$login;
-		}
-	}
-
 	if(my $ftp = Net::FTP->new($ip,Timeout => ($use_high_timeout eq 0 ? $ftp_timeout: $ftp_timeout_high), Port => $port, Passive => 1, Debug => $ftp_debug, LocalAddr => $local_address, SSL_verify_mode => 0))
 	{
 		if($ssl eq 'ssl') {
@@ -5629,10 +5619,10 @@ debug_msg('i am in sub fxp_rel');
 			$last_speed = 0;
 			my $timer_key_local = start_timer();
 			if($new_name eq '') {
-				$s1[0]->cpsv_xfer($filename, $s2[0], $filename);
+				$s1[0]->pasv_xfer($filename, $s2[0], $filename);
 			}
 			else {
-				$s1[0]->cpsv_xfer($filename, $s2[0], $new_name);
+				$s1[0]->pasv_xfer($filename, $s2[0], $new_name);
 				$filename = $new_name;
 			}
 			my $secs_end=stop_timer($timer_key_local, 1);
@@ -6369,10 +6359,10 @@ debug_msg('i am in sub force_fxp_rel');
 			$last_speed = 0;
 			my $timer_key_local = start_timer();
 			if($new_name eq '') {
-				$s1[0]->cpsv_xfer($filename, $s2[0], $filename);
+				$s1[0]->pasv_xfer($filename, $s2[0], $filename);
 			}
 			else {
-				$s1[0]->cpsv_xfer($filename, $s2[0], $new_name);
+				$s1[0]->pasv_xfer($filename, $s2[0], $new_name);
 				$filename = $new_name;
 			}
 			my $secs_end=stop_timer($timer_key_local, 1);
