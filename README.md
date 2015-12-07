@@ -25,11 +25,6 @@
  - lots of bugfixes with error-replies from ftpd (file-exists, out-of-space and so on)
  - and again improvements and bugfixes for !pre gimme/search-routines
  - rewrote !pre showstats
- - first steps to support ssl-fxp ... 
-
- todo:
- ------------------------
- - support of ssl-fxp
 
  install
  ------------------------
@@ -57,7 +52,7 @@
 	 - today_dir STRING: full path to the sites mp3-today dir
 	 - prepath STRING: full path to the groups pre-dir
 	 - precommand STRING: command to pre there - like 'pre RELEASENAME mp3'
-	 - ssl_status STRING: nope/required - sets if ssl is needed or not
+	 - ssl_status STRING: nope/auth - sets if ssl is needed or not
 	 - login STRING: prebots login
 	 - passwd STRING: prebots passwd
 	 - source_sites STRING: sites to use as source for spreading/gimme (sorted list like 'SITE1,SITE2...')

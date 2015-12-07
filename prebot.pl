@@ -77,7 +77,7 @@ my $create_table =
 # db fields, for validation
 my @db_fields = ('sitename','status','bnc','presite','dump','dump_path','sorted_mp3','additional_searchdirs','today_dir','prepath','precommand','ssl_status','login','passwd','source_sites','logins','speed_index','archive','affils','location','speed','siteops');
 my @db_binary_fields = ('presite', 'dump', 'archive');
-my @db_ssl_values = ('nope', 'auth', 'full');
+my @db_ssl_values = ('nope', 'auth');
 
 
 # blowfish object
@@ -616,7 +616,7 @@ sub on_public {
 			irc_msg($irc_msgs, ' - today_dir STRING: full path to the sites mp3-today dir', $dest);
 			irc_msg($irc_msgs, ' - prepath STRING: full path to the groups pre-dir', $dest);
 			irc_msg($irc_msgs, ' - precommand STRING: command to pre there - like "pre RELEASENAME mp3"', $dest);
-			irc_msg($irc_msgs, ' - ssl_status STRING: sets if ssl is needed or not -> nope, auth, full', $dest);
+			irc_msg($irc_msgs, ' - ssl_status STRING: sets if ssl is needed or not -> nope, auth', $dest);
 			irc_msg($irc_msgs, ' - login STRING: prebots login', $dest);
 			irc_msg($irc_msgs, ' - passwd STRING: prebots passwd', $dest);
 			irc_msg($irc_msgs, ' - source_sites STRING: sites to use as source for spreading/gimme (sorted koma-sep list like "SITE1,SITE2...")', $dest);
@@ -4702,6 +4702,22 @@ sub get_site_bnc {
 
 # ------------------------------------------------------------------
 
+#copy file with fxp using SSL
+sub fxp_file {
+	my $source_site = shift;
+	my $orig_filename = shift;
+	my $dest_site = shift;
+	my $new_filename = shift;
+	my $ssl = shift;
+
+	if ($ssl eq 1) {
+		$source_site->quot('SSCN ON');
+		$dest_site->quot('SSCN OFF');
+	}
+	
+	$source_site->pasv_xfer($orig_filename, $dest_site, $new_filename);
+}
+
 # connect to a site - change to predir or dump dir or other given directory
 sub connect_to_site {
 	my $bnc_list = shift;
@@ -4728,6 +4744,7 @@ sub connect_to_site {
 		}
 		else {
 			my $msg = get_message($ftp);
+
 			if($prepath ne 0) {
 				if(!$ftp->cwd($prepath) || ($ftp->code ne $CODE_CMD_OK)) {
 					return (0,sprintf('cannot change to directory %s (%s)',$prepath,get_message($ftp)));
@@ -5619,10 +5636,10 @@ debug_msg('i am in sub fxp_rel');
 			$last_speed = 0;
 			my $timer_key_local = start_timer();
 			if($new_name eq '') {
-				$s1[0]->pasv_xfer($filename, $s2[0], $filename);
+				fxp_file($s1[0], $filename, $s2[0], $filename, 1);
 			}
 			else {
-				$s1[0]->pasv_xfer($filename, $s2[0], $new_name);
+				fxp_file($s1[0], $filename, $s2[0], $new_name, 1);
 				$filename = $new_name;
 			}
 			my $secs_end=stop_timer($timer_key_local, 1);
@@ -6359,10 +6376,10 @@ debug_msg('i am in sub force_fxp_rel');
 			$last_speed = 0;
 			my $timer_key_local = start_timer();
 			if($new_name eq '') {
-				$s1[0]->pasv_xfer($filename, $s2[0], $filename);
+				fxp_file($s1[0], $filename, $s2[0], $filename, 1);
 			}
 			else {
-				$s1[0]->pasv_xfer($filename, $s2[0], $new_name);
+				fxp_file($s1[0], $filename, $s2[0], $new_name, 1);
 				$filename = $new_name;
 			}
 			my $secs_end=stop_timer($timer_key_local, 1);
